@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import {
   Table,
   TableBody,
@@ -20,15 +20,13 @@ import {
   TextField,
 } from "@mui/material";
 import { CSVLink } from "react-csv";
-import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 
 const columns = [
   { id: "id", label: "ID", minWidth: 20 },
-  { id: "customer_name", label: "Customer Name", minWidth: 100 },
-  { id: "customer_email", label: "Email", minWidth: 50 },
-  { id: "customer_phone", label: "Phone", minWidth: 50 },
-  { id: "customer_country", label: "Country", minWidth: 50 },
-  { id: "customer_address", label: "Address", minWidth: 200 },
+  { id: "create_date", label: "Date", minWidth: 20 },
+  { id: "customer", label: "Customer", minWidth: 100 },
+  { id: "order_status", label: "Status", minWidth: 20 },
+  { id: "order_amount", label: "Amount", minWidth: 20 },
   { id: "action", label: "Action", minWidth: 100 },
 ];
 
@@ -98,12 +96,9 @@ const useStyles = makeStyles({
 const Index = () => {
   const classes = useStyles();
   const history = useHistory();
-  const { REACT_APP_COUNTRYSTATECITY_KEY } = process.env;
   const [search, setSearch] = useState("");
   const [customers, setCustomers] = useState([]);
-
-  const [countries, setCountries] = useState([]);
-
+  const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchResults, setSearchResults] = useState([]);
@@ -111,40 +106,50 @@ const Index = () => {
   const handleChange = (e) => {
     setSearch(e.target.value);
 
-    if (customers) {
-      const results = customers.filter((cust) =>
-        cust.customer_name.toLowerCase().includes(e.target.value)
+    let name = e.target.value;
+    if (orders) {
+      const results = orders.filter(
+        (ord) => ord.id === parseInt(e.target.value)
       );
+      // console.log(results);
       setSearchResults(results);
     }
+
+    // if (customers) {
+    //   const result = customers.filter((cust) =>
+    //     cust.customer_name.toLowerCase().includes(name)
+    //   );
+
+    //   console.log(result);
+    //   if (orders) {
+    //     const results = orders.filter(
+    //       (ord) =>
+    //         ord.customer in
+    //         result.map((i) => {
+    //           console.log(i.id);
+    //         })
+    //     );
+    //     console.log(results);
+    //     setSearchResults(results);
+    //   }
+    // }
   };
 
-  let customer = [];
+  let order = [];
   if (search) {
-    customer = searchResults;
+    order = searchResults;
   } else {
-    customer = customers;
+    order = orders;
   }
 
-  // fetch country
-
-  var headersNew = new Headers();
-  headersNew.append("X-CSCAPI-KEY", `${REACT_APP_COUNTRYSTATECITY_KEY}`);
-
-  var requestOptions = {
-    method: "GET",
-    headers: headersNew,
-    redirect: "follow",
-  };
-  const fetchCountries = () => {
-    fetch("https://api.countrystatecity.in/v1/countries", requestOptions)
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.length > 0) {
-          setCountries(result);
-        }
+  // get orders
+  const fetchOrders = async () => {
+    await axios
+      .get("http://127.0.0.1:8000/all_order/")
+      .then((res) => {
+        setOrders(res.data);
       })
-      .catch((error) => console.log("error", error));
+      .catch((err) => console.log(err));
   };
 
   // get customer
@@ -159,22 +164,21 @@ const Index = () => {
 
   useEffect(() => {
     fetchCustomers();
-    fetchCountries();
+    fetchOrders();
   }, []);
 
   const headers = [
     { label: "ID", key: "id" },
-    { label: "Customer Name", key: "customer_name" },
-    { label: "Email", key: "customer_email" },
-    { label: "Phone", key: "customer_phone" },
-    { label: "Country", key: "customer_country" },
-    { label: "Address", key: "customer_address" },
+    { label: "Date", key: "create_date" },
+    { label: "Customer", key: "customer" },
+    { label: "Status", key: "order_status" },
+    { label: "Amount", key: "order_amount" },
   ];
 
   const csvReport = {
-    filename: "Customer.csv",
+    filename: "Order.csv",
     headers: headers,
-    data: customers,
+    data: orders,
   };
 
   const handleChangePage = (event, newPage) => {
@@ -187,24 +191,24 @@ const Index = () => {
   };
 
   const deleteHandler = (id) => {
-    const deleteCust = async () => {
+    const deleteOrder = async () => {
+      // delete from order
       const response = await axios
-        .delete("http://127.0.0.1:8000/delete_customer/" + id)
+        .delete("http://127.0.0.1:8000/delete_order/" + id)
         .catch((err) => console.log(err));
       if (response) {
-        const results = customers.filter((cust) => cust.id !== id);
-        setCustomers(results);
+        const results = orders.filter((ord) => ord.id !== id);
+        setOrders(results);
       }
     };
-
-    deleteCust();
+    deleteOrder();
   };
   return (
     <>
       <Box className={classes.addPanel}>
         <div className={classes.item}>
           <div>
-            {customers && (
+            {orders && (
               <div className="nav-link">
                 <CSVLink {...csvReport}>
                   <CloudDownloadIcon
@@ -215,15 +219,16 @@ const Index = () => {
               </div>
             )}
           </div>
+
           <div>
             <Button
               variant="contained"
               className={classes.button}
               onClick={() => {
-                history.push("/add-customer");
+                history.push("/add-order");
               }}
             >
-              Add Customer
+              Add Order
             </Button>
           </div>
         </div>
@@ -236,7 +241,7 @@ const Index = () => {
               margin="normal"
               fullWidth
               id="search"
-              label="Search customer"
+              label="Search order"
               name="search"
               value={search}
               onChange={handleChange}
@@ -264,26 +269,23 @@ const Index = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {customer
+              {order
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row) => {
                   return (
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                       <TableCell>{row.id}</TableCell>
-                      <TableCell>{row.customer_name}</TableCell>
-                      <TableCell>{row.customer_email}</TableCell>
-                      <TableCell>{row.customer_phone}</TableCell>
+                      <TableCell>{row.create_date}</TableCell>
                       <TableCell>
-                        {countries
-                          .filter(
-                            (c) => c.id === parseInt(row.customer_country)
-                          )
-                          .map((item) => item.name)}
+                        {customers
+                          .filter((cust) => cust.id === row.customer)
+                          .map((name) => name.customer_name)}
                       </TableCell>
-                      <TableCell>{row.customer_address}</TableCell>
+                      <TableCell>{row.order_status}</TableCell>
+                      <TableCell>{row.order_amount}</TableCell>
                       <TableCell>
                         <Link
-                          to={`/edit-customer/${row.id}`}
+                          to={`/edit-order/${row.id}`}
                           className={classes.link}
                         >
                           <EditIcon size={20} />
@@ -304,7 +306,7 @@ const Index = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 100]}
           component="div"
-          count={customers.length}
+          count={orders.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

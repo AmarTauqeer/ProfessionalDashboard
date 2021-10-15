@@ -9,7 +9,7 @@ class User(models.Model):
     user_address = models.CharField(max_length=250, blank=False)
     user_country = models.CharField(max_length=100, blank=False)
     user_state = models.CharField(max_length=50, blank=True)
-    user_region = models.CharField(max_length=50, blank=True)
+    user_city = models.CharField(max_length=50, blank=True)
     user_phone = models.CharField(max_length=50, blank=True)
     user_password = models.CharField(max_length=150, blank=False)
     user_status = models.CharField(max_length=20, default="Active")
@@ -39,7 +39,7 @@ class Customer(models.Model):
     customer_address = models.CharField(max_length=250, blank=False)
     customer_country = models.CharField(max_length=100, blank=False)
     customer_state = models.CharField(max_length=50, blank=True)
-    customer_region = models.CharField(max_length=50, blank=True)
+    customer_city = models.CharField(max_length=50, blank=True)
     customer_phone = models.CharField(max_length=50, blank=True)
     customer_email = models.CharField(max_length=50, blank=False)
 
@@ -47,8 +47,8 @@ class Customer(models.Model):
 class Order(models.Model):
     create_date = models.DateField(auto_now_add=True)
     order_status = models.CharField(max_length=10, default="Pending")
-    order_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    order_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
 
 class OrderDetail(models.Model):

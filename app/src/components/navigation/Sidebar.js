@@ -21,8 +21,9 @@ import { Grid, makeStyles, Paper } from "@material-ui/core";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import userImage from "../../images/amar.PNG";
 import defaultUserImage from "../../images/default-person.png";
-
-const drawerWidth = 260;
+import SettingsApplicationsIcon from "@mui/icons-material/SettingsApplications";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+const drawerWidth = 300;
 
 const useStyle = makeStyles({});
 
@@ -69,6 +70,28 @@ function Sidebar(props) {
         history.push("/customer");
       },
     },
+    {
+      text: "Orders",
+      icon: <ShoppingCartIcon />,
+      onClick: () => {
+        if (props.openSidebar != undefined) {
+          props.openSidebar(false);
+        }
+        history.push("/order");
+      },
+    },
+
+    {
+      text: "Change Password",
+      icon: <SettingsApplicationsIcon />,
+      onClick: () => {
+        if (props.openSidebar != undefined) {
+          props.openSidebar(false);
+        }
+        history.push("/change-password");
+      },
+    },
+
     {
       text: "Signout",
       icon: <LogoutIcon />,

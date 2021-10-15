@@ -8,10 +8,10 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import { makeStyles } from "@material-ui/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { validator } from "../validation";
-
+import { customerValidator as validator } from "../validation";
+import { FormControl, MenuItem, Select } from "@mui/material";
 const useStyles = makeStyles({
   outer: {
     display: "flex",
@@ -44,38 +44,106 @@ const useStyles = makeStyles({
     color: "#9d0000",
     fontSize: "12px",
   },
+  select: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 500,
+    height: 42,
+    "@media (max-width:960px)": {
+      minWidth: 290,
+      height: 40,
+      width: 290,
+      minWidth: 290,
+    },
+  },
 });
 
-export default function Signup() {
+export default function AddCustomer() {
   const classes = useStyles();
   const history = useHistory();
+  const { REACT_APP_COUNTRYSTATECITY_KEY } = process.env;
   const [isAdmin, setIsAdmin] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [selectedState, setSelectedState] = useState([]);
+  const [selectedCity, setSelectedCity] = useState([]);
   const [customError, setCustomError] = useState({
     nameError: "",
-    passError: "",
     emailError: "",
     countryError: "",
     addressError: "",
   });
 
   const [inputs, setInputs] = useState({
-    userName: "",
-    password: "",
-    email: "",
-    phone: "",
+    customerName: "",
+    address: "",
     country: "",
     state: "",
     city: "",
-    address: "",
+    phone: "",
+    email: "",
   });
+
+  // fetch country
+
+  var headers = new Headers();
+  headers.append("X-CSCAPI-KEY", `${REACT_APP_COUNTRYSTATECITY_KEY}`);
+
+  var requestOptions = {
+    method: "GET",
+    headers: headers,
+    redirect: "follow",
+  };
+  const fetchCountries = async () => {
+    await fetch("https://api.countrystatecity.in/v1/countries", requestOptions)
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.length > 0) {
+          setCountries(result);
+        }
+      })
+      .catch((error) => console.log("error", error));
+  };
+
+  const fetchStates = async (cid) => {
+    await fetch(
+      `https://api.countrystatecity.in/v1/countries/${cid}/states`,
+      requestOptions
+    )
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.length > 0) {
+          setStates(result);
+        }
+      })
+      .catch((error) => console.log("error", error));
+  };
+
+  const fetchCities = async (cid) => {
+    await fetch(
+      `https://api.countrystatecity.in/v1/countries/${cid}/cities`,
+      requestOptions
+    )
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.length > 0) {
+          setCities(result);
+        }
+      })
+      .catch((error) => console.log("error", error));
+  };
+
+  useEffect(() => {
+    fetchCountries();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const validationResult = validator(
-      inputs.userName,
-      inputs.password,
-      "cpass",
+      inputs.customerName,
       inputs.email,
       inputs.country,
       inputs.address
@@ -83,49 +151,48 @@ export default function Signup() {
     // console.log(validationResult);
     setCustomError({
       nameError: validationResult.nameError,
-      passError: validationResult.passError,
       emailError: validationResult.emailError,
       countryError: validationResult.countryError,
       addressError: validationResult.addressError,
     });
     const isValid = validationResult.valid;
 
-    // add user
-    const addUsers = () => {
+    // add customer
+    const addCustomers = () => {
       if (
-        inputs.userName &&
-        inputs.password &&
+        inputs.customerName &&
         inputs.email &&
         inputs.address &&
         inputs.country
       ) {
         const userData = {
-          user_name: inputs.userName,
-          user_email: inputs.email,
-          user_address: inputs.address,
-          user_country: inputs.country,
-          user_state: inputs.state,
-          user_city: inputs.city,
-          user_phone: inputs.phone,
-          user_password: inputs.password,
+          customer_name: inputs.customerName,
+          customer_address: inputs.address,
+          customer_country: inputs.country,
+          customer_state: inputs.state,
+          customer_city: inputs.city,
+          customer_phone: inputs.phone,
+          customer_email: inputs.email,
         };
-        axios.post("http://127.0.0.1:8000/add_user/", userData).then((res) => {
-          if (res.data) {
-            history.push("/signin");
-          } else {
-            alert("There are issues to insert the record");
-          }
-        });
+        // console.log(userData);
+        axios
+          .post("http://127.0.0.1:8000/add_customer/", userData)
+          .then((res) => {
+            if (res.data) {
+              history.push("/customer");
+            } else {
+              alert("There are issues to insert the record");
+            }
+          });
       }
     };
 
     if (isValid) {
       // add user
-      addUsers();
+      addCustomers();
       // clear form data
       setCustomError({
         nameError: "",
-        passError: "",
         emailError: "",
         countryError: "",
         addressError: "",
@@ -138,15 +205,13 @@ export default function Signup() {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
 
     const validationResult = validator(
-      inputs.userName,
-      inputs.password,
+      inputs.customerName,
       inputs.email,
       inputs.country,
       inputs.address
     );
     setCustomError({
       nameError: validationResult.nameError,
-      passError: validationResult.passError,
       emailError: validationResult.emailError,
       countryError: validationResult.countryError,
       addressError: validationResult.addressError,
@@ -156,11 +221,8 @@ export default function Signup() {
     <div className={classes.outer}>
       <Paper elevation={0} className={classes.paper} square={true}>
         <Box className={classes.box}>
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-            <LockOutlinedIcon />
-          </Avatar>
           <Typography component="h1" variant="h5">
-            Sign up
+            ADD CUSTOMER
           </Typography>
           <Box
             component="form"
@@ -172,10 +234,10 @@ export default function Signup() {
               margin="normal"
               required
               fullWidth
-              id="userName"
-              label="User Name"
-              name="userName"
-              value={inputs.userName}
+              id="customerName"
+              label="Customer Name"
+              name="customerName"
+              value={inputs.customerName}
               size="small"
               onChange={handleChange}
               autoComplete="off"
@@ -183,24 +245,6 @@ export default function Signup() {
             {customError.nameError && (
               <div className={classes.validationInput}>
                 {customError.nameError}
-              </div>
-            )}
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              value={inputs.password}
-              onChange={handleChange}
-              size="small"
-              autoComplete="off"
-            />
-            {customError.passError && (
-              <div className={classes.validationInput}>
-                {customError.passError}
               </div>
             )}
             <TextField
@@ -233,49 +277,81 @@ export default function Signup() {
               size="small"
               autoComplete="off"
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="country"
-              label="Country"
-              type="text"
-              id="country"
-              value={inputs.country}
-              onChange={handleChange}
-              size="small"
-              autoComplete="off"
-            />
+            <FormControl fullWidth>
+              <Select
+                className={classes.select}
+                value={inputs.country}
+                displayEmpty
+                onChange={(e) => {
+                  setInputs({ ...inputs, country: e.target.value });
+                  {
+                    fetchStates(e.target.value);
+                    fetchCities(e.target.value);
+                  }
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Select country
+                </MenuItem>
+                {countries.length > 0 &&
+                  countries.map((x) => {
+                    return (
+                      <MenuItem key={x.id} value={x.id}>
+                        {x.name}
+                      </MenuItem>
+                    );
+                  })}
+              </Select>
+            </FormControl>
             {customError.countryError && (
               <div className={classes.validationInput}>
                 {customError.countryError}
               </div>
             )}
+            <FormControl fullWidth>
+              <Select
+                className={classes.select}
+                value={inputs.state}
+                displayEmpty
+                onChange={(e) => {
+                  setInputs({ ...inputs, state: e.target.value });
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Select state
+                </MenuItem>
 
-            <TextField
-              margin="normal"
-              fullWidth
-              name="state"
-              label="State"
-              type="text"
-              id="state"
-              value={inputs.state}
-              onChange={handleChange}
-              size="small"
-              autoComplete="off"
-            />
-            <TextField
-              margin="normal"
-              fullWidth
-              name="city"
-              label="City"
-              type="text"
-              id="city"
-              value={inputs.city}
-              onChange={handleChange}
-              size="small"
-              autoComplete="off"
-            />
+                {states.map((x) => {
+                  return (
+                    <MenuItem key={x.id} value={x.id}>
+                      {x.name}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <Select
+                className={classes.select}
+                value={inputs.city}
+                displayEmpty
+                onChange={(e) => {
+                  setInputs({ ...inputs, city: e.target.value });
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Select city
+                </MenuItem>
+
+                {cities.map((x) => {
+                  return (
+                    <MenuItem key={x.id} value={x.id}>
+                      {x.name}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
 
             <TextField
               margin="normal"
@@ -303,21 +379,9 @@ export default function Signup() {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign up
+              Save
             </Button>
           </Box>
-          <Grid container>
-            {/* <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid> */}
-            <Grid item>
-              <Link to="/signin" variant="body2">
-                {"Have an account? Sign in"}
-              </Link>
-            </Grid>
-          </Grid>
         </Box>
       </Paper>
     </div>

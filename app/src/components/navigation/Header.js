@@ -9,12 +9,13 @@ import React, { useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import Sidebar from "./Sidebar";
 import LocalFloristIcon from "@mui/icons-material/LocalFlorist";
+import logo from "../../images/dashboard.png";
 
 const useStyle = makeStyles({
   header: {
-    paddingLeft: 10,
+    paddingLeft: 260,
     "@media (max-width:960px)": {
-      marginLeft: "0px",
+      paddingLeft: "0px",
     },
   },
   hamburger: {
@@ -25,17 +26,10 @@ const useStyle = makeStyles({
   responsiveSidebar: {
     marginTop: 25,
   },
-  logo: {
-    marginLeft: 240,
-    color: "white",
-    "@media (max-width:960px)": {
-      marginLeft: "0px",
-    },
-  },
 });
 
 const Header = (props) => {
-  console.log(props);
+  // console.log(props);
   const classes = useStyle();
   const [openMenu, setOpenMenu] = useState(false);
   if (props.openSidebar) {
@@ -63,14 +57,13 @@ const Header = (props) => {
           >
             <MenuIcon onClick={handleClick} />
           </IconButton>
-          <LocalFloristIcon className={classes.logo} />
           <Typography
             variant="h6"
             noWrap
             component="div"
             className={classes.header}
           >
-            Dashboard
+            DASHBOARD COMPANY ABC
           </Typography>
         </Toolbar>
       </AppBar>

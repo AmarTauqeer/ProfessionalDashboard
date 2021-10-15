@@ -1,7 +1,7 @@
 import os
 
 from django.contrib.auth.hashers import make_password, check_password
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponse
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from django.db.models import Q
@@ -74,7 +74,7 @@ def add_user(request):
             "user_address": request.data['user_address'],
             "user_country": request.data['user_country'],
             "user_state": request.data['user_state'],
-            "user_region": request.data['user_region'],
+            "user_city": request.data['user_city'],
             "user_phone": request.data['user_phone'],
             "user_password": pass_encrypt,
         }
@@ -122,8 +122,8 @@ def check_user(request):
         try:
             user = User.objects.get(user_name=request.data['user_name'])
             # print(user.user_name)
-            print(user.user_password)
-            print(request.data['user_password'])
+            # print(user.user_password)
+            # print(request.data['user_password'])
             # print(user.is_admin)
             # print(request.data['is_admin'])
             user_data = {
@@ -135,18 +135,18 @@ def check_user(request):
                 "user_address": user.user_address,
                 "user_country": user.user_country,
                 "user_state": user.user_state,
-                "user_region": user.user_region,
+                "user_city": user.user_city,
                 "user_phone": user.user_phone,
                 "user_status": user.user_status,
                 "create_date": user.create_date,
 
             }
-            print(user_data)
+            # print(user_data)
             serializer = UserSerializer(user, data=user_data)
             if user:
                 match_password = check_password(
                     request.data['user_password'], user.user_password)
-
+                print(match_password)
                 if match_password and user.is_admin == request.data['is_admin']:
                     print(serializer.is_valid())
                     if serializer.is_valid():
@@ -165,14 +165,29 @@ def check_user(request):
 def change_password(request):
     if request.method == 'PUT':
         user = User.objects.get(user_name=request.data['user_name'])
+        print(user.user_name)
+        print(user.user_password)
+        print(request.data['user_password'])
+        print(request.data['old_password'])
         if user:
             match_password = check_password(
                 request.data['old_password'], user.user_password)
             pass_encrypt = make_password(request.data['user_password'])
+            print(match_password)
             if match_password:
                 new_data = {
-                    "user_name": user.user_name,
-                    "user_password": pass_encrypt
+                    'user_name': user.user_name,
+                    'user_password': pass_encrypt,
+                    'is_admin': user.is_admin,
+                    'id': user.id,
+                    "user_email": user.user_email,
+                    "user_address": user.user_address,
+                    "user_country": user.user_country,
+                    "user_state": user.user_state,
+                    "user_city": user.user_city,
+                    "user_phone": user.user_phone,
+                    "user_status": user.user_status,
+                    "create_date": user.create_date,
                 }
                 serializer = UserSerializer(user, data=new_data)
                 if serializer.is_valid():
@@ -215,7 +230,9 @@ def add_product(request):
 @api_view(['PUT'])
 def update_product(request, id):
     if request.method == 'PUT':
+        print(id)
         product = Product.objects.get(pk=id)
+        print(product.product_name)
         serializer = ProductSerializer(product, data=request.data)
         if serializer.is_valid():
             if len(request.FILES) != 0:
@@ -299,6 +316,7 @@ def add_order(request):
 @api_view(['POST'])
 def add_order_detail(request):
     if request.method == 'POST':
+        print(request.data)
         serializer = OrderDetailSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -315,8 +333,62 @@ def all_order(request):
 
 
 @api_view(['GET'])
+def get_last_ordId(request):
+    if request.method == 'GET':
+        orderId = Order.objects.latest('pk')
+        print(orderId.id)
+        # serializer = OrderSerializer(orderId, many=True)
+        return HttpResponse(orderId.id)
+
+
+@api_view(['GET'])
 def all_order_detail(request):
     if request.method == 'GET':
         orders = OrderDetail.objects.all()
         serializer = OrderDetailSerializer(orders, many=True)
         return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['DELETE'])
+def delete_order_detail(request, id):
+    if request.method == 'DELETE':
+        ord_detail = OrderDetail.objects.get(pk=id)
+        ord_detail.delete()
+        return JsonResponse({'message': 'Order Detail was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['DELETE'])
+def delete_order(request, id):
+    if request.method == 'DELETE':
+        order = Order.objects.get(pk=id)
+        order.delete()
+        return JsonResponse({'message': 'Order was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
+
+
+@swagger_auto_schema(methods=['put'], request_body=OrderSerializer)
+@api_view(['PUT'])
+def update_order(request, id):
+    if request.method == 'PUT':
+        order = Order.objects.get(pk=id)
+        serializer = OrderSerializer(order, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['POST'])
+def update_order_detail(request):
+    if request.method == 'POST':
+        id=request.data['order']
+        orders = OrderDetail.objects.all()
+        order = orders.filter(order=id)
+        olddata = order
+        olddata.delete()
+        serializer = OrderDetailSerializer(data=request.data)
+        print(serializer.is_valid())
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data,safe=False)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST,safe=False)

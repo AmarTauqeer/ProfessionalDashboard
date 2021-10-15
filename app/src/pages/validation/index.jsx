@@ -77,6 +77,41 @@ export const validator = (name, pass, cpass, email, country, address) => {
   return customError;
 };
 
+export const changePasswordValidator = (name, pass, oldPass) => {
+  let customError = {
+    nameError: "",
+    passError: "",
+    oldPassError: "",
+    valid: true,
+  };
+  let nameError = "";
+  let passError = "";
+  let oldPassError = "";
+
+  if (name === "" && typeof name !== "undefined") {
+    nameError = "Please provide a user name.";
+  }
+
+  if (pass === "" && typeof pass !== "undefined") {
+    passError = "Please provide password.";
+  }
+
+  if (oldPass === "" && typeof oldPass !== "undefined") {
+    passError = "Please provide old password.";
+  }
+
+  if (nameError || passError || oldPassError) {
+    customError = {
+      nameError,
+      passError,
+      oldPassError,
+      valid: false,
+    };
+    return customError;
+  }
+  return customError;
+};
+
 export const categoryValidator = (name, desc) => {
   let customError = {
     nameError: "",
@@ -90,7 +125,7 @@ export const categoryValidator = (name, desc) => {
     nameError = "Please provide a category name.";
   }
 
-  if (name === "" && typeof name !== "undefined") {
+  if (desc === "" && typeof desc !== "undefined") {
     descError = "Please provide a description of category.";
   }
 
@@ -124,7 +159,7 @@ export const productValidator = (name, desc, category) => {
     nameError = "Please provide a product name.";
   }
 
-  if (name === "" && typeof name !== "undefined") {
+  if (desc === "" && typeof desc !== "undefined") {
     descError = "Please provide a description of product.";
   }
 
@@ -140,7 +175,7 @@ export const productValidator = (name, desc, category) => {
   return customError;
 };
 
-export const customerValidator = (name, address, country, email) => {
+export const customerValidator = (name, email, country, address) => {
   var pattern = new RegExp(
     /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i
   );

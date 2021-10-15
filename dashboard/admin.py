@@ -11,7 +11,7 @@ class AdminCategory(admin.ModelAdmin):
 
 
 class AdminOrder(admin.ModelAdmin):
-    list_display = ['create_date', 'order_status', 'order_amount', 'user']
+    list_display = ['create_date', 'order_status', 'order_amount', 'customer']
 
 
 class AdminOrderDetail(admin.ModelAdmin):

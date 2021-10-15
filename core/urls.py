@@ -38,9 +38,14 @@ urlpatterns = [
     path('delete_product/<int:id>', views.delete_product),
 
     path('all_order/', views.all_order),
+    path('get_last_ordId/', views.get_last_ordId),
     path('all_order_detail/', views.all_order_detail),
     path('add_order/', views.add_order),
     path('add_order_detail/', views.add_order_detail),
+    path('delete_order_detail/<int:id>', views.delete_order_detail),
+    path('update_order_detail/', views.update_order_detail),
+    path('update_order/<int:id>', views.update_order),
+    path('delete_order/<int:id>', views.delete_order),
 
 
     path('all_user/', views.all_user),

@@ -12,7 +12,7 @@ import Paper from "@mui/material/Paper";
 import { makeStyles } from "@material-ui/core";
 import { useState } from "react";
 import axios from "axios";
-import { validator } from "../validation";
+import { changePasswordValidator as validator } from "../validation";
 
 const useStyles = makeStyles({
   outer: {
@@ -48,25 +48,33 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Signin() {
+export default function ChangePassword({ user }) {
   const classes = useStyles();
   const history = useHistory();
   const [isAdmin, setIsAdmin] = useState(false);
   const [customError, setCustomError] = useState({
     nameError: "",
     passError: "",
+    oldPassError: "",
   });
 
   const [inputs, setInputs] = useState({
-    userName: "",
+    userName: user.user_name,
     password: "",
+    oldPassword: "",
+    isAdmin: user.is_admin,
   });
   const checkUsers = () => {
-    if (inputs.userName && inputs.password) {
+    if (
+      inputs.userName &&
+      inputs.password &&
+      inputs.oldPassword &&
+      inputs.isAdmin
+    ) {
       const userData = {
         user_name: inputs.userName,
-        user_password: inputs.password,
-        is_admin: isAdmin,
+        user_password: inputs.oldPassword,
+        is_admin: inputs.isAdmin,
       };
 
       axios.post("http://127.0.0.1:8000/check_user/", userData).then((res) => {
@@ -78,22 +86,20 @@ export default function Signin() {
         ) {
           alert("invalid user name or password");
         } else {
-          localStorage.setItem(
-            "userInfo",
-            JSON.stringify({
-              ...userData,
-              is_admin: isAdmin,
-              id: res.data.id,
+          const userData = {
+            user_name: inputs.userName,
+            user_password: inputs.password,
+            old_password: inputs.oldPassword,
+            is_admin: inputs.isAdmin,
+          };
+          axios
+            .put("http://127.0.0.1:8000/change_password/", userData)
+            .then((res) => {
+              localStorage.setItem("userInfo", []);
+              history.push("./signin");
+              window.location.reload(false);
             })
-          );
-          //Session.set("userInfo", userData);
-          if (res.data.is_admin === true) {
-            history.push("/dashboard");
-            window.location.reload(false);
-          } else {
-            history.push("/");
-            window.location.reload(false);
-          }
+            .catch((error) => console.log(error));
         }
       });
     }
@@ -102,18 +108,23 @@ export default function Signin() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const validationResult = validator(inputs.userName, inputs.password);
+    const validationResult = validator(
+      inputs.userName,
+      inputs.password,
+      inputs.oldPassword
+    );
 
     setCustomError({
       nameError: validationResult.nameError,
       passError: validationResult.passError,
+      oldPassError: validationResult.oldPassError,
     });
     const isValid = validationResult.valid;
     if (isValid) {
       // check user
       checkUsers();
       // clear form data
-      setCustomError({ nameError: "", passError: "" });
+      setCustomError({ nameError: "", passError: "", oldPassError: "" });
     }
   };
 
@@ -121,21 +132,23 @@ export default function Signin() {
   const handleChange = (e) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
 
-    const validationResult = validator(inputs.userName, inputs.password);
+    const validationResult = validator(
+      inputs.userName,
+      inputs.password,
+      inputs.oldPassword
+    );
     setCustomError({
       nameError: validationResult.nameError,
       passError: validationResult.passError,
+      oldPassError: validationResult.oldPassError,
     });
   };
   return (
     <div className={classes.outer}>
       <Paper elevation={0} className={classes.paper} square={true}>
         <Box className={classes.box}>
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-            <LockOutlinedIcon />
-          </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            CHANGE PASSWORD
           </Typography>
           <Box
             component="form"
@@ -164,8 +177,27 @@ export default function Signin() {
               margin="normal"
               required
               fullWidth
+              name="oldPassword"
+              label="Old Password"
+              type="password"
+              id="oldPassword"
+              value={inputs.oldPassword}
+              onChange={handleChange}
+              size="small"
+              autoComplete="off"
+            />
+            {customError.oldPassError && (
+              <div className={classes.validationInput}>
+                {customError.oldPassError}
+              </div>
+            )}
+
+            <TextField
+              margin="normal"
+              required
+              fullWidth
               name="password"
-              label="Password"
+              label="New Password"
               type="password"
               id="password"
               value={inputs.password}
@@ -178,32 +210,14 @@ export default function Signin() {
                 {customError.passError}
               </div>
             )}
-            <FormControlLabel
-              control={
-                <Checkbox
-                  name="isAdmin"
-                  value={isAdmin}
-                  color="primary"
-                  onChange={(e) => setIsAdmin(e.target.checked)}
-                />
-              }
-              label="Is Admin"
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Update
             </Button>
-            <Grid container>
-              <Grid item>
-                <Link to="/signup" variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
-              </Grid>
-            </Grid>
           </Box>
         </Box>
       </Paper>
