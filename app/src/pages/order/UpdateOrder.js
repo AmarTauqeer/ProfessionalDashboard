@@ -11,6 +11,12 @@ import axios from "axios";
 import { productValidator as validator } from "../validation";
 import { FormControl, Grid, MenuItem, Select } from "@mui/material";
 import UpdateOrderDetail from "./UpdateOrderDetail";
+import {
+  MuiPickersUtilsProvider,
+  KeyboardDatePicker,
+} from "@material-ui/pickers";
+import DateFnsUtils from "@date-io/date-fns";
+import Moment from "moment";
 
 const useStyles = makeStyles({
   outer: {
@@ -82,6 +88,7 @@ export default function AddOrder() {
   const { id } = useParams();
   const [customers, setCustomers] = useState([]);
   const [ordItems, setOrdItems] = useState([]);
+  const [selectedDate, handleDateChange] = useState(new Date());
   const [customError, setCustomError] = useState({
     customerIdError: "",
   });
@@ -107,10 +114,12 @@ export default function AddOrder() {
     // add order
     const updateOrder = () => {
       if (inputs.customerId && inputs.orderAmount) {
+        let newDate = Moment(inputs.createDate).format("yyyy-MM-DD");
         const fd = new FormData();
         fd.append("customer", inputs.customerId);
         fd.append("order_status", inputs.orderStatus);
         fd.append("order_amount", inputs.orderAmount);
+        fd.append("create_date", newDate);
 
         axios
           .put(`http://127.0.0.1:8000/update_order/${orderId}`, fd)
@@ -273,18 +282,17 @@ export default function AddOrder() {
                     {customError.customerIdError}
                   </div>
                 )}
-                <TextField
-                  required
-                  margin="normal"
-                  className={classes.inputs}
-                  name="createDate"
-                  label="Order Date"
-                  type="text"
-                  id="createDate"
-                  value={inputs.createDate}
-                  onChange={handleChange}
-                  autoComplete="off"
-                />
+                <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                  <KeyboardDatePicker
+                    disableToolbar
+                    className={classes.inputs}
+                    value={selectedDate}
+                    format="dd/MM/yyyy"
+                    margin="normal"
+                    value={inputs.createDate}
+                    onChange={(e) => setInputs({ ...inputs, createDate: e })}
+                  />
+                </MuiPickersUtilsProvider>
               </Grid>
               <Grid item xs={12} sm={8} md={6}>
                 <FormControl fullWidth>

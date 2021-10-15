@@ -13,6 +13,7 @@ import {
 } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Moment from "moment";
 
 const columns = [
   { id: "id", label: "ID", minWidth: 20 },
@@ -233,7 +234,9 @@ const Dashboard = ({ user }) => {
                   return (
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                       <TableCell>{row.id}</TableCell>
-                      <TableCell>{row.create_date}</TableCell>
+                      <TableCell>
+                        {Moment(row.create_date).format("DD/MM/YYYY")}
+                      </TableCell>
                       <TableCell>
                         {customers
                           .filter((cust) => cust.id === row.customer)

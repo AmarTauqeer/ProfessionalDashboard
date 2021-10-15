@@ -305,6 +305,7 @@ def update_customer(request, id):
 @api_view(['POST'])
 def add_order(request):
     if request.method == 'POST':
+        print(request.data)
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -316,7 +317,6 @@ def add_order(request):
 @api_view(['POST'])
 def add_order_detail(request):
     if request.method == 'POST':
-        print(request.data)
         serializer = OrderDetailSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -369,6 +369,7 @@ def delete_order(request, id):
 @api_view(['PUT'])
 def update_order(request, id):
     if request.method == 'PUT':
+        print(request.data)
         order = Order.objects.get(pk=id)
         serializer = OrderSerializer(order, data=request.data)
         if serializer.is_valid():

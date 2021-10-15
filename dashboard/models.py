@@ -45,7 +45,7 @@ class Customer(models.Model):
 
 
 class Order(models.Model):
-    create_date = models.DateField(auto_now_add=True)
+    create_date = models.DateField(auto_now_add=False)
     order_status = models.CharField(max_length=10, default="Pending")
     order_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)

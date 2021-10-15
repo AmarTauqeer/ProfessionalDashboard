@@ -11,6 +11,15 @@ import axios from "axios";
 import { productValidator as validator } from "../validation";
 import { FormControl, Grid, MenuItem, Select } from "@mui/material";
 import OrderDetail from "./OrderDetail";
+import Moment from "moment";
+import {
+  DatePicker,
+  TimePicker,
+  DateTimePicker,
+  MuiPickersUtilsProvider,
+  KeyboardDatePicker,
+} from "@material-ui/pickers";
+import DateFnsUtils from "@date-io/date-fns";
 
 const useStyles = makeStyles({
   outer: {
@@ -87,7 +96,7 @@ export default function AddOrder() {
 
   const [inputs, setInputs] = useState({
     customerId: 7,
-    createDate: "12.12.2022",
+    createDate: new Date(),
     orderStatus: "Pending",
     orderAmount: 0,
     orderId: "",
@@ -106,13 +115,23 @@ export default function AddOrder() {
     // add order
     const addOrder = () => {
       if (inputs.customerId && inputs.orderAmount) {
+        let newDate = Moment(inputs.createDate).format("yyyy-MM-DD");
+
+        // console.log(typeof newDate);
+        // let a = new Date(newDate);
+
+        // console.log(a);
+
         const fd = new FormData();
-        fd.append("customer", inputs.customerId);
+        let t = fd.append("customer", inputs.customerId);
         fd.append("order_status", inputs.orderStatus);
         fd.append("order_amount", inputs.orderAmount);
+        fd.append("create_date", newDate);
+        // console.log(fd);
 
         axios.post("http://127.0.0.1:8000/add_order/", fd).then((res) => {
           if (res.data) {
+            // console.log(res.data);
             addOrderDetail(res.data.id);
             history.push("/order");
           } else {
@@ -138,7 +157,7 @@ export default function AddOrder() {
             .post("http://127.0.0.1:8000/add_order_detail/", data)
             .then((res) => {
               if (res.data) {
-                console.log(res.data);
+                // console.log(res.data);
               } else {
                 alert("There are issues to insert the record");
               }
@@ -159,6 +178,7 @@ export default function AddOrder() {
 
   // handle change
   const handleChange = (e) => {
+    console.log(e.target.name);
     setInputs({ ...inputs, [e.target.name]: e.target.value });
 
     const validationResult = validator(inputs.customerId);
@@ -255,18 +275,22 @@ export default function AddOrder() {
                     {customError.customerIdError}
                   </div>
                 )}
-                <TextField
-                  required
-                  margin="normal"
-                  className={classes.inputs}
-                  name="createDate"
-                  label="Order Date"
-                  type="text"
-                  id="createDate"
-                  value={inputs.createDate}
-                  onChange={handleChange}
-                  autoComplete="off"
-                />
+
+                <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                  <KeyboardDatePicker
+                    disableToolbar
+                    className={classes.inputs}
+                    format="dd-MM-yyyy"
+                    margin="normal"
+                    value={inputs.createDate}
+                    onChange={(date) => {
+                      setInputs({
+                        ...inputs,
+                        createDate: date,
+                      });
+                    }}
+                  />
+                </MuiPickersUtilsProvider>
               </Grid>
               <Grid item xs={12} sm={8} md={6}>
                 <FormControl fullWidth>

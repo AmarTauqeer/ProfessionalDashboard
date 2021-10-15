@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { customerValidator as validator } from "../validation";
 import { FormControl, MenuItem, Select } from "@mui/material";
+
 const useStyles = makeStyles({
   outer: {
     display: "flex",
@@ -69,6 +70,7 @@ export default function AddCustomer() {
   const [cities, setCities] = useState([]);
   const [selectedState, setSelectedState] = useState([]);
   const [selectedCity, setSelectedCity] = useState([]);
+
   const [customError, setCustomError] = useState({
     nameError: "",
     emailError: "",

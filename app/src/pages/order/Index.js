@@ -20,7 +20,7 @@ import {
   TextField,
 } from "@mui/material";
 import { CSVLink } from "react-csv";
-
+import Moment from "moment";
 const columns = [
   { id: "id", label: "ID", minWidth: 20 },
   { id: "create_date", label: "Date", minWidth: 20 },
@@ -111,28 +111,8 @@ const Index = () => {
       const results = orders.filter(
         (ord) => ord.id === parseInt(e.target.value)
       );
-      // console.log(results);
       setSearchResults(results);
     }
-
-    // if (customers) {
-    //   const result = customers.filter((cust) =>
-    //     cust.customer_name.toLowerCase().includes(name)
-    //   );
-
-    //   console.log(result);
-    //   if (orders) {
-    //     const results = orders.filter(
-    //       (ord) =>
-    //         ord.customer in
-    //         result.map((i) => {
-    //           console.log(i.id);
-    //         })
-    //     );
-    //     console.log(results);
-    //     setSearchResults(results);
-    //   }
-    // }
   };
 
   let order = [];
@@ -147,6 +127,7 @@ const Index = () => {
     await axios
       .get("http://127.0.0.1:8000/all_order/")
       .then((res) => {
+        // console.log(res.data);
         setOrders(res.data);
       })
       .catch((err) => console.log(err));
@@ -275,7 +256,9 @@ const Index = () => {
                   return (
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                       <TableCell>{row.id}</TableCell>
-                      <TableCell>{row.create_date}</TableCell>
+                      <TableCell>
+                        {Moment(row.create_date).format("DD/MM/YYYY")}
+                      </TableCell>
                       <TableCell>
                         {customers
                           .filter((cust) => cust.id === row.customer)
