@@ -336,8 +336,6 @@ def all_order(request):
 def get_last_ordId(request):
     if request.method == 'GET':
         orderId = Order.objects.latest('pk')
-        print(orderId.id)
-        # serializer = OrderSerializer(orderId, many=True)
         return HttpResponse(orderId.id)
 
 
@@ -369,7 +367,6 @@ def delete_order(request, id):
 @api_view(['PUT'])
 def update_order(request, id):
     if request.method == 'PUT':
-        print(request.data)
         order = Order.objects.get(pk=id)
         serializer = OrderSerializer(order, data=request.data)
         if serializer.is_valid():
@@ -378,18 +375,16 @@ def update_order(request, id):
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 @api_view(['POST'])
 def update_order_detail(request):
     if request.method == 'POST':
-        id=request.data['order']
+        id = request.data['order']
         orders = OrderDetail.objects.all()
         order = orders.filter(order=id)
         olddata = order
         olddata.delete()
         serializer = OrderDetailSerializer(data=request.data)
-        print(serializer.is_valid())
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(serializer.data,safe=False)
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST,safe=False)
+            return JsonResponse(serializer.data, safe=False)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST, safe=False)

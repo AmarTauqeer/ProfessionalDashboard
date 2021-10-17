@@ -285,6 +285,7 @@ const Index = () => {
                         <DeleteOutlineIcon
                           className={classes.delete}
                           size={20}
+                          color="secondary"
                           onClick={() => deleteHandler(row.id)}
                         />
                       </TableCell>

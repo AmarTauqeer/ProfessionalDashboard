@@ -131,7 +131,7 @@ export default function Signin() {
     <div className={classes.outer}>
       <Paper elevation={0} className={classes.paper} square={true}>
         <Box className={classes.box}>
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+          <Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
